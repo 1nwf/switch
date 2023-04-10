@@ -1,14 +1,15 @@
 const std = @import("std");
 
 const os = std.os;
+const Terminal = @import("terminal.zig");
 
 pub fn main() !void {
-    var tty = try std.fs.openFileAbsolute("/dev/tty", .{ .mode = .read_write });
-    var termios = try std.os.tcgetattr(tty.handle);
-    _ = termios;
+    var term = try Terminal.init();
 
-    var writer = std.io.bufferedWriter(tty.writer());
-    _ = try writer.write("?\n");
+    term.disableIcanon();
 
-    try writer.flush();
+    while (true) {
+        const str = try term.read();
+        term.write(str);
+    }
 }
