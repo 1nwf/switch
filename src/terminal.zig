@@ -1,5 +1,6 @@
 const std = @import("std");
 const system = std.os.system;
+const ansi_term = @import("ansi-term");
 
 const Terminal = @This();
 tty: std.fs.File,
@@ -39,8 +40,9 @@ pub fn write(self: *Terminal, bytes: []const u8) void {
     _ = self.writer.write(bytes) catch 0;
 }
 
-pub fn writeln(self: *Terminal, bytes: []const u8) void {
-    std.fmt.format(self.writer, "{s}\n", .{bytes}) catch {};
+pub fn writeln(self: *Terminal, comptime bytes: []const u8, args: anytype) void {
+    std.fmt.format(self.writer, bytes, args) catch {};
+    self.write("\n");
 }
 
 pub fn setTermAttrs(self: *Terminal) void {
@@ -50,4 +52,12 @@ pub fn setTermAttrs(self: *Terminal) void {
     // also disbale terminal from echoing the input back to the user
     self.termios.lflag &= ~(system.ICANON | system.ECHO);
     std.os.tcsetattr(self.tty.handle, .NOW, self.termios) catch {};
+}
+
+pub fn clearLine(self: *Terminal) void {
+    ansi_term.clear.clearCurrentLine(self.writer) catch {};
+}
+
+pub fn setCursor(self: *Terminal) void {
+    ansi_term.cursor.setCursorMode(self.writer, ansi_term.cursor.CursorMode.underscore) catch {};
 }
