@@ -3,7 +3,7 @@ const system = std.os.system;
 
 const Terminal = @This();
 tty: std.fs.File,
-writer: std.io.BufferedWriter(4096, std.fs.File.Writer),
+writer: std.fs.File.Writer,
 termios: std.os.termios,
 
 index: u8 = 0,
@@ -12,9 +12,12 @@ input_buffer: [200]u8 = undefined,
 pub fn init() !Terminal {
     var tty = try std.fs.openFileAbsolute("/dev/tty", .{ .mode = .read_write });
     var termios = try std.os.tcgetattr(tty.handle);
-    var writer = std.io.bufferedWriter(tty.writer());
+    var writer = tty.writer();
 
-    return Terminal{ .tty = tty, .writer = writer, .termios = termios };
+    var term = Terminal{ .tty = tty, .writer = writer, .termios = termios };
+    term.setTermAttrs();
+
+    return term;
 }
 
 pub fn read(self: *Terminal) ![]u8 {
@@ -33,12 +36,14 @@ pub fn read(self: *Terminal) ![]u8 {
 }
 
 pub fn write(self: *Terminal, bytes: []const u8) void {
-    const writer = self.writer.writer();
-    _ = writer.write(bytes) catch 0;
-    self.writer.flush() catch {};
+    _ = self.writer.write(bytes) catch 0;
 }
 
-pub fn disableIcanon(self: *Terminal) void {
+pub fn writeln(self: *Terminal, bytes: []const u8) void {
+    std.fmt.format(self.writer, "{s}\n", .{bytes}) catch {};
+}
+
+pub fn setTermAttrs(self: *Terminal) void {
     // disable terminal behavior that converts CR char to \n (new line)
     self.termios.iflag &= ~(system.ICRNL);
     // tell the terminal to not buffer input until new line or eof
