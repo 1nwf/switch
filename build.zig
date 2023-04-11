@@ -29,6 +29,9 @@ pub fn build(b: *std.Build) void {
     // step when running `zig build`).
     exe.install();
 
+    const ansi_term = b.addModule("ansi-term", .{ .source_file = .{ .path = "lib/ansi-term/src/main.zig" } });
+    exe.addModule("ansi-term", ansi_term);
+
     // This *creates* a RunStep in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish
     // such a dependency.
