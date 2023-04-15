@@ -3,15 +3,6 @@ path: []const u8,
 data: std.fs.File,
 
 const Self = @This();
-pub const Entry = struct {
-    dir: []const u8,
-
-    fn init(
-        dir: []const u8,
-    ) Entry {
-        return Entry{ .dir = dir };
-    }
-};
 
 pub fn init(alloc: std.mem.Allocator) !Self {
     var dir = try default_dir(alloc);
@@ -51,7 +42,21 @@ pub fn write(self: Self, value: []const u8) !void {
     try self.data.writeAll(value);
 }
 
-pub fn addEntry(self: *Self, entry: Entry) void {
-    _ = entry;
+pub fn addEntry(self: *Self, path: []const u8) void {
+    _ = path;
     _ = self;
+}
+
+pub fn read(self: *Self, alloc: std.mem.Allocator) ![][]const u8 {
+    var reader = self.data.reader();
+    var list = std.ArrayList([]const u8).init(alloc);
+    while (true) {
+        var dir = reader.readUntilDelimiterAlloc(alloc, '\n', 200) catch break;
+        if (dir.len == 0) {
+            break;
+        }
+        try list.append(dir);
+    }
+
+    return list.items;
 }
