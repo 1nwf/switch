@@ -18,6 +18,7 @@ pub fn init() !Terminal {
     var term = Terminal{ .tty = tty, .writer = writer, .termios = termios };
     term.setTermAttrs();
 
+    term.setCursor();
     return term;
 }
 
