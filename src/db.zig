@@ -20,8 +20,9 @@ pub fn init(alloc: std.mem.Allocator) !Self {
     var filename_buf: [100]u8 = undefined;
 
     var filename = try std.fmt.bufPrint(&filename_buf, "{s}/{s}", .{ dir, "folders.txt" });
-    var file = std.fs.openFileAbsolute(filename, .{}) catch blk: {
-        break :blk try std.fs.createFileAbsolute(filename, .{ .read = true });
+
+    var file = std.fs.openFileAbsolute(filename, .{ .mode = .read_write }) catch blk: {
+        break :blk try std.fs.createFileAbsolute(filename, .{});
     };
 
     return Self{ .data = file, .path = dir };
