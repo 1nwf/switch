@@ -1,4 +1,3 @@
-const builtin = @import("builtin");
 const std = @import("std");
 path: []const u8,
 data: std.fs.File,
@@ -21,15 +20,10 @@ pub fn init(alloc: std.mem.Allocator) !Self {
     var filename_buf: [100]u8 = undefined;
 
     var filename = try std.fmt.bufPrint(&filename_buf, "{s}/{s}", .{ dir, "folders.txt" });
-
-    std.debug.print("filename is {s}\n", .{filename});
     var file = std.fs.openFileAbsolute(filename, .{}) catch blk: {
         break :blk try std.fs.createFileAbsolute(filename, .{ .read = true });
     };
 
-    var buf: [100]u8 = undefined;
-    var n = try file.readAll(&buf);
-    std.debug.print("file {s}", .{buf[0..n]});
     return Self{ .data = file, .path = dir };
 }
 
