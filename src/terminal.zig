@@ -62,3 +62,12 @@ pub fn clearLine(self: *Terminal) void {
 pub fn setCursor(self: *Terminal) void {
     ansi_term.cursor.setCursorMode(self.writer, ansi_term.cursor.CursorMode.underscore) catch {};
 }
+
+pub fn deinit(self: *Terminal) void {
+    var i: u8 = 0;
+    while (i < 6) : (i += 1) {
+        ansi_term.cursor.cursorUp(self.writer, 1) catch {};
+        self.clearLine();
+    }
+    self.tty.close();
+}
