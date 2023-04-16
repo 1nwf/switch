@@ -43,8 +43,11 @@ pub fn write(self: Self, value: []const u8) !void {
     try self.data.writeAll(value);
 }
 
-pub fn addEntry(self: *Self, path: []const u8) ![]u8 {
+pub fn addEntry(self: *Self, path: []const u8) ![]const u8 {
     var dir = try std.fs.realpathAlloc(self.alloc, path);
+    if (self.entryExists(dir)) {
+        return dir;
+    }
     try self.data.seekFromEnd(0);
     try self.data.writeAll(dir);
     try self.data.writeAll("\n");
@@ -63,4 +66,15 @@ pub fn read(self: *Self, alloc: std.mem.Allocator) ![][]const u8 {
     }
 
     return list.items;
+}
+
+pub fn entryExists(self: *Self, entry: []const u8) bool {
+    const entries = self.read(self.alloc) catch unreachable;
+    for (entries) |e| {
+        if (std.mem.eql(u8, e, entry)) {
+            return true;
+        }
+    }
+
+    return false;
 }
