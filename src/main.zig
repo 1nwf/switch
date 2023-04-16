@@ -21,7 +21,7 @@ pub fn main() !void {
     while (true) {
         const str = try term.read();
         var val = std.fmt.parseInt(usize, str, 0) catch {
-            return;
+            continue;
         };
         if (val > entries.len or val <= 0) {
             continue;
