@@ -1,6 +1,7 @@
 const std = @import("std");
 path: []const u8,
 data: std.fs.File,
+alloc: std.mem.Allocator,
 
 const Self = @This();
 
@@ -16,7 +17,7 @@ pub fn init(alloc: std.mem.Allocator) !Self {
         break :blk try std.fs.createFileAbsolute(filename, .{});
     };
 
-    return Self{ .data = file, .path = dir };
+    return Self{ .data = file, .path = dir, .alloc = alloc };
 }
 
 pub fn deinit(self: *Self) void {
@@ -42,9 +43,12 @@ pub fn write(self: Self, value: []const u8) !void {
     try self.data.writeAll(value);
 }
 
-pub fn addEntry(self: *Self, path: []const u8) void {
-    _ = path;
-    _ = self;
+pub fn addEntry(self: *Self, path: []const u8) ![]u8 {
+    var dir = try std.fs.realpathAlloc(self.alloc, path);
+    try self.data.seekFromEnd(0);
+    try self.data.writeAll(dir);
+    try self.data.writeAll("\n");
+    return dir;
 }
 
 pub fn read(self: *Self, alloc: std.mem.Allocator) ![][]const u8 {
