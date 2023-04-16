@@ -37,13 +37,13 @@ pub fn read(self: *Terminal) ![]u8 {
     return self.input_buffer[idx..self.index];
 }
 
-pub fn write(self: *Terminal, bytes: []const u8) void {
-    _ = self.writer.write(bytes) catch 0;
+pub fn write(self: *Terminal, bytes: []const u8, args: anytype) void {
+    self.writer.print(bytes, args) catch {};
 }
 
 pub fn writeln(self: *Terminal, comptime bytes: []const u8, args: anytype) void {
-    std.fmt.format(self.writer, bytes, args) catch {};
-    self.write("\n");
+    self.writer.print(bytes, args) catch {};
+    _ = self.writer.write("\n") catch {};
 }
 
 pub fn setTermAttrs(self: *Terminal) void {
