@@ -31,7 +31,7 @@ pub const App = struct {
             if (val > self.entries.len or val <= 0) {
                 continue;
             }
-            self.term.clear(self.entries.len);
+            self.term.clearLines(self.entries.len);
             try std.io.getStdOut().writeAll(self.entries[val - 1]);
             return;
         }

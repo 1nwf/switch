@@ -67,7 +67,7 @@ pub fn deinit(self: *Terminal) void {
     self.tty.close();
 }
 
-pub fn clear(self: *Terminal, lines: usize) void {
+pub fn clearLines(self: *Terminal, lines: usize) void {
     var i: u8 = 0;
     while (i < lines) : (i += 1) {
         ansi_term.cursor.cursorUp(self.writer, 1) catch {};
