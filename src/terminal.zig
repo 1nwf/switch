@@ -64,10 +64,13 @@ pub fn setCursor(self: *Terminal) void {
 }
 
 pub fn deinit(self: *Terminal) void {
+    self.tty.close();
+}
+
+pub fn clear(self: *Terminal) void {
     var i: u8 = 0;
     while (i < 6) : (i += 1) {
         ansi_term.cursor.cursorUp(self.writer, 1) catch {};
         self.clearLine();
     }
-    self.tty.close();
 }
