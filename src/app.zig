@@ -18,10 +18,12 @@ pub const App = struct {
     pub fn run(self: *App, alloc: std.mem.Allocator) !void {
         defer self.deinit();
         self.entries = try self.db.read(alloc);
-        for (self.entries) |dir| {
-            _ = self.term.writer.write(dir) catch {};
+        for (self.entries, 0..) |dir, idx| {
+            _ = self.term.writer.print("{}. {s}", .{ idx + 1, dir }) catch {};
             self.term.writeln("", .{});
         }
+
+        self.term.write("=> ", .{});
 
         while (true) {
             const str = try self.term.read();

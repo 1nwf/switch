@@ -37,7 +37,7 @@ pub fn read(self: *Terminal) ![]u8 {
     return self.input_buffer[idx..self.index];
 }
 
-pub fn write(self: *Terminal, bytes: []const u8, args: anytype) void {
+pub fn write(self: *Terminal, comptime bytes: []const u8, args: anytype) void {
     self.writer.print(bytes, args) catch {};
 }
 
@@ -68,9 +68,11 @@ pub fn deinit(self: *Terminal) void {
 }
 
 pub fn clearLines(self: *Terminal, lines: usize) void {
+    self.clearLine();
     var i: u8 = 0;
     while (i < lines) : (i += 1) {
         ansi_term.cursor.cursorUp(self.writer, 1) catch {};
         self.clearLine();
     }
+    ansi_term.cursor.setCursorColumn(self.writer, 0) catch {};
 }
