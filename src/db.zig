@@ -75,8 +75,7 @@ pub fn read(
 }
 
 pub fn entryExists(self: *Self, entry: []const u8) bool {
-    const entries = self.read() catch unreachable;
-    for (entries) |e| {
+    for (self.entries) |e| {
         if (std.mem.eql(u8, e, entry)) {
             return true;
         }
