@@ -6,16 +6,18 @@ const Terminal = @This();
 tty: std.fs.File,
 writer: std.fs.File.Writer,
 termios: std.os.termios,
-
+old_termios: std.os.termios,
 index: u8 = 0,
 input_buffer: [200]u8 = undefined,
 
 pub fn init() !Terminal {
     var tty = try std.fs.openFileAbsolute("/dev/tty", .{ .mode = .read_write });
     var termios = try std.os.tcgetattr(tty.handle);
+
+    const old_termios = termios;
     var writer = tty.writer();
 
-    var term = Terminal{ .tty = tty, .writer = writer, .termios = termios };
+    var term = Terminal{ .tty = tty, .writer = writer, .termios = termios, .old_termios = old_termios };
     term.setTermAttrs();
 
     term.setCursor();
@@ -67,6 +69,7 @@ pub fn setCursor(self: *Terminal) void {
 }
 
 pub fn deinit(self: *Terminal) void {
+    std.os.tcsetattr(self.tty.handle, .NOW, self.old_termios) catch {};
     self.tty.close();
 }
 
