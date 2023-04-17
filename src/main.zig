@@ -4,18 +4,25 @@ const Terminal = @import("terminal.zig");
 const DB = @import("db.zig");
 const ansi_term = @import("ansi-term");
 
-const Actions = enum { add };
-const Command = union(Actions) { add: []const u8 };
-fn parseArgs(args: [][:0]const u8) ?Command {
-    for (args[1..], 1..) |arg, idx| {
-        if (std.mem.eql(u8, arg, "add") or std.mem.eql(u8, arg, "-a")) {
-            if (idx + 1 >= args.len) {
+const Actions = enum { add, rm };
+const Command = union(Actions) { add: []const u8, rm: []const u8 };
+fn parseArgs(args: *std.process.ArgIterator) ?Command {
+    _ = args.skip();
+    while (args.next()) |arg| {
+        if (std.mem.eql(u8, arg, "add") or std.mem.eql(u8, arg, "a")) {
+            if (args.next()) |dir| {
+                return Command{ .add = dir };
+            } else {
                 std.log.err("provide path to be added", .{});
                 std.process.exit(1);
             }
-            const dir = args[idx + 1];
-
-            return Command{ .add = dir };
+        } else if (std.mem.eql(u8, arg, "remove") or std.mem.eql(u8, arg, "rm")) {
+            if (args.next()) |dir| {
+                return Command{ .rm = dir };
+            } else {
+                std.log.err("provide path to be removed", .{});
+                std.process.exit(1);
+            }
         }
     }
 
@@ -28,13 +35,13 @@ pub fn main() !void {
     var alloc = arena_alloc.allocator();
     var db = try DB.init(alloc);
 
-    var args = std.process.argsAlloc(alloc) catch return;
-    defer std.process.argsFree(alloc, args);
+    var args = std.process.argsWithAllocator(alloc) catch unreachable;
+    defer args.deinit();
 
     const writer = std.io.getStdOut().writer();
-    if (args.len > 1) {
-        const command = parseArgs(args).?;
-        switch (command) {
+    const command = parseArgs(&args);
+    if (command) |cmd| {
+        switch (cmd) {
             .add => |dir| {
                 const real_path = db.addEntry(dir) catch {
                     std.log.err("unable to add entry", .{});
@@ -42,12 +49,19 @@ pub fn main() !void {
                 };
                 try writer.print("added {s}", .{real_path});
             },
+            .rm => |dir| {
+                const real_path = db.removeEntry(dir) catch {
+                    std.log.err("unable to remove entry", .{});
+                    std.process.exit(1);
+                };
+                try writer.print("removed {s}", .{real_path});
+            },
         }
-
         return;
     }
 
     var term = try Terminal.init();
     var app = App.init(.num, term, db);
+
     try app.run();
 }

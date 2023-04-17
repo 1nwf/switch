@@ -58,6 +58,30 @@ pub fn addEntry(self: *Self, path: []const u8) ![]const u8 {
     return dir;
 }
 
+pub fn removeEntry(self: *Self, path: []const u8) ![]u8 {
+    var dir = try std.fs.realpathAlloc(self.alloc, path);
+    var size: usize = 0;
+    for (self.entries) |e| {
+        size += e.len + 1;
+    }
+
+    var data = try self.alloc.alloc(u8, size - dir.len - 1);
+    var index: usize = 0;
+    for (self.entries) |entry| {
+        if (!std.mem.eql(u8, entry, dir)) {
+            std.mem.copy(u8, data[index..], entry);
+            std.mem.copy(u8, data[index + entry.len ..], "\n");
+            index += entry.len + 1;
+        }
+    }
+
+    try self.data.setEndPos(0);
+    try self.data.seekTo(0);
+    try self.data.writeAll(data);
+
+    return dir;
+}
+
 pub fn read(
     self: *Self,
 ) ![][]const u8 {
