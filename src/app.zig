@@ -33,6 +33,10 @@ pub const App = struct {
             if (val > self.entries.len or val <= 0) {
                 continue;
             }
+
+            const white = .{ .RGB = .{ .r = 0xff, .g = 0xff, .b = 0xff } };
+            self.term.setLineStyle(self.entries.len, val - 1, white, .Red, self.entries[val - 1]);
+            std.time.sleep(60_000_000);
             self.term.clearLines(self.entries.len);
             try std.io.getStdOut().writeAll(self.entries[val - 1]);
             return;

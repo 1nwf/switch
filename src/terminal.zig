@@ -52,6 +52,9 @@ pub fn setTermAttrs(self: *Terminal) void {
     // tell the terminal to not buffer input until new line or eof
     // also disbale terminal from echoing the input back to the user
     self.termios.lflag &= ~(system.ICANON | system.ECHO);
+
+    self.termios.cc[system.V.MIN] = 1;
+
     std.os.tcsetattr(self.tty.handle, .NOW, self.termios) catch {};
 }
 
@@ -75,4 +78,13 @@ pub fn clearLines(self: *Terminal, lines: usize) void {
         self.clearLine();
     }
     ansi_term.cursor.setCursorColumn(self.writer, 0) catch {};
+}
+
+pub fn setLineStyle(self: *Terminal, total_lines: usize, line: usize, fg: ansi_term.style.Color, bg: ansi_term.style.Color, entry: []const u8) void {
+    ansi_term.cursor.saveCursor(self.writer) catch {};
+    ansi_term.cursor.cursorUp(self.writer, total_lines - line) catch {};
+    ansi_term.format.updateStyle(self.writer, .{ .foreground = fg, .background = bg }, null) catch {};
+    ansi_term.cursor.setCursorColumn(self.writer, 0) catch {};
+    self.writeln("{}. {s}", .{ line + 1, entry });
+    ansi_term.cursor.restoreCursor(self.writer) catch {};
 }
