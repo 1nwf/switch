@@ -38,7 +38,7 @@ pub fn main() !void {
     var args = std.process.argsWithAllocator(alloc) catch unreachable;
     defer args.deinit();
 
-    const writer = std.io.getStdOut().writer();
+    const stdout = std.io.getStdOut().writer();
     const command = parseArgs(&args);
     if (command) |cmd| {
         switch (cmd) {
@@ -47,14 +47,14 @@ pub fn main() !void {
                     std.log.err("unable to add entry", .{});
                     std.process.exit(1);
                 };
-                try writer.print("added {s}", .{real_path});
+                try stdout.print("added {s}", .{real_path});
             },
             .rm => |dir| {
                 const real_path = db.removeEntry(dir) catch {
                     std.log.err("unable to remove entry", .{});
                     std.process.exit(1);
                 };
-                try writer.print("removed {s}", .{real_path});
+                try stdout.print("removed {s}", .{real_path});
             },
         }
         return;
@@ -63,5 +63,6 @@ pub fn main() !void {
     var term = try Terminal.init();
     var app = App.init(.num, term, db);
 
-    try app.run();
+    const selection = try app.run();
+    try stdout.print("{s}\n", .{selection});
 }

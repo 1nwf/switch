@@ -16,7 +16,7 @@ pub const App = struct {
 
     pub fn run(
         self: *App,
-    ) !void {
+    ) ![]const u8 {
         defer self.deinit();
 
         const entries = self.db.entries;
@@ -41,8 +41,7 @@ pub const App = struct {
             self.term.write("{}", .{val});
             std.time.sleep(50_000_000);
             self.term.clearLines(entries.len);
-            try std.io.getStdOut().writeAll(entries[val - 1]);
-            return;
+            return entries[val - 1];
         }
     }
 
