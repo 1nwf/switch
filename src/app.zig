@@ -36,6 +36,7 @@ pub const App = struct {
 
             const white = .{ .RGB = .{ .r = 0xff, .g = 0xff, .b = 0xff } };
             self.term.setLineStyle(self.entries.len, val - 1, white, .Red, self.entries[val - 1]);
+            self.term.write("{}", .{val});
             std.time.sleep(50_000_000);
             self.term.clearLines(self.entries.len);
             try std.io.getStdOut().writeAll(self.entries[val - 1]);
