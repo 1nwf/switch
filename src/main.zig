@@ -49,5 +49,5 @@ pub fn main() !void {
 
     var term = try Terminal.init();
     var app = App.init(.num, term, db);
-    try app.run(alloc);
+    try app.run();
 }

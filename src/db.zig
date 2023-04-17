@@ -2,6 +2,7 @@ const std = @import("std");
 path: []const u8,
 data: std.fs.File,
 alloc: std.mem.Allocator,
+entries: [][]const u8,
 
 const Self = @This();
 
@@ -17,7 +18,10 @@ pub fn init(alloc: std.mem.Allocator) !Self {
         break :blk try std.fs.createFileAbsolute(filename, .{});
     };
 
-    return Self{ .data = file, .path = dir, .alloc = alloc };
+    var db = Self{ .data = file, .path = dir, .alloc = alloc, .entries = undefined };
+    db.entries = try db.read();
+
+    return db;
 }
 
 pub fn deinit(self: *Self) void {
@@ -54,11 +58,13 @@ pub fn addEntry(self: *Self, path: []const u8) ![]const u8 {
     return dir;
 }
 
-pub fn read(self: *Self, alloc: std.mem.Allocator) ![][]const u8 {
+pub fn read(
+    self: *Self,
+) ![][]const u8 {
     var reader = self.data.reader();
-    var list = std.ArrayList([]const u8).init(alloc);
+    var list = std.ArrayList([]const u8).init(self.alloc);
     while (true) {
-        var dir = reader.readUntilDelimiterAlloc(alloc, '\n', 200) catch break;
+        var dir = reader.readUntilDelimiterAlloc(self.alloc, '\n', 200) catch break;
         if (dir.len == 0) {
             break;
         }
@@ -69,7 +75,7 @@ pub fn read(self: *Self, alloc: std.mem.Allocator) ![][]const u8 {
 }
 
 pub fn entryExists(self: *Self, entry: []const u8) bool {
-    const entries = self.read(self.alloc) catch unreachable;
+    const entries = self.read() catch unreachable;
     for (entries) |e| {
         if (std.mem.eql(u8, e, entry)) {
             return true;

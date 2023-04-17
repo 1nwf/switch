@@ -6,7 +6,6 @@ pub const App = struct {
     mode: Mode,
     term: Terminal,
     db: DB,
-    entries: [][]const u8 = undefined,
     pub fn init(mode: Mode, term: Terminal, db: DB) App {
         return App{
             .mode = mode,
@@ -15,10 +14,13 @@ pub const App = struct {
         };
     }
 
-    pub fn run(self: *App, alloc: std.mem.Allocator) !void {
+    pub fn run(
+        self: *App,
+    ) !void {
         defer self.deinit();
-        self.entries = try self.db.read(alloc);
-        for (self.entries, 0..) |dir, idx| {
+
+        const entries = self.db.entries;
+        for (entries, 0..) |dir, idx| {
             _ = self.term.writer.print("{}. {s}", .{ idx + 1, dir }) catch {};
             self.term.writeln("", .{});
         }
@@ -30,16 +32,16 @@ pub const App = struct {
             var val = std.fmt.parseInt(usize, str, 0) catch {
                 continue;
             };
-            if (val > self.entries.len or val <= 0) {
+            if (val > self.db.entries.len or val <= 0) {
                 continue;
             }
 
             const white = .{ .RGB = .{ .r = 0xff, .g = 0xff, .b = 0xff } };
-            self.term.setLineStyle(self.entries.len, val - 1, white, .Red, self.entries[val - 1]);
+            self.term.setLineStyle(entries.len, val - 1, white, .Red, entries[val - 1]);
             self.term.write("{}", .{val});
             std.time.sleep(50_000_000);
-            self.term.clearLines(self.entries.len);
-            try std.io.getStdOut().writeAll(self.entries[val - 1]);
+            self.term.clearLines(entries.len);
+            try std.io.getStdOut().writeAll(entries[val - 1]);
             return;
         }
     }
