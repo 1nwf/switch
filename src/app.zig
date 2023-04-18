@@ -8,15 +8,15 @@ pub const App = struct {
     db: DB,
     selection: usize = 0,
 
-    const SelectionBackground = .{ .foreground = .{ .RGB = .{ .r = 0xff, .g = 0xff, .b = 0xff } }, .background = .Red };
+    const SelectionStyle = .{ .foreground = .{ .RGB = .{ .r = 0xff, .g = 0xff, .b = 0xff } }, .background = .Red };
     pub fn init(mode: Mode, term: Terminal, db: DB) App {
-        return App{ .mode = mode, .term = term, .db = db, .selection = db.entries.len };
+        return App{ .mode = mode, .term = term, .db = db };
     }
 
     fn writeEntries(self: *App) void {
         const entries = self.db.entries;
         for (entries, 0..) |dir, idx| {
-            if (idx == self.selection) {
+            if (idx + 1 == self.selection) {
                 self.term.writer.print("* ", .{}) catch {};
             }
             _ = self.term.writer.print("{}. {s}", .{ idx + 1, dir }) catch {};
@@ -42,7 +42,7 @@ pub const App = struct {
                 self.selectUp();
                 continue;
             } else if (std.mem.eql(u8, str, "\r")) {
-                val = self.selection + 1;
+                val = self.selection;
             } else {
                 val = std.fmt.parseInt(usize, str, 0) catch 0;
             }
@@ -50,7 +50,7 @@ pub const App = struct {
                 continue;
             }
 
-            self.term.setLineStyle(entries.len, val - 1, App.SelectionBackground.foreground, App.SelectionBackground.background, entries[val - 1]);
+            self.term.setLineStyle(entries.len, val - 1, App.SelectionStyle, entries[val - 1]);
 
             self.term.write("{}", .{val});
             std.time.sleep(50_000_000);
@@ -65,29 +65,33 @@ pub const App = struct {
         self.db.deinit();
     }
 
-    fn cursorUp(self: *App) void {
-        if (self.selection == 0) {
-            return;
-        }
-        self.selection -= 1;
-    }
-
-    fn cursorDown(self: *App) void {
-        if (self.selection >= self.db.entries.len) {
-            return;
-        }
-        self.selection += 1;
-    }
-
     fn selectUp(self: *App) void {
-        self.term.clearLines(self.db.entries.len);
-        self.cursorUp();
-        self.writeEntries();
+        if (self.selection <= 1) {
+            self.restoreSelectionStyle();
+            self.selection = self.db.entries.len;
+        } else {
+            self.restoreSelectionStyle();
+            self.selection -= 1;
+        }
+        self.restoreSelectionStyle();
+        self.term.setLineStyle(self.db.entries.len, self.selection - 1, App.SelectionStyle, self.db.entries[self.selection - 1]);
     }
 
     fn selectDown(self: *App) void {
-        self.cursorDown();
-        self.term.clearLines(self.db.entries.len);
-        self.writeEntries();
+        if (self.selection + 1 > self.db.entries.len) {
+            self.restoreSelectionStyle();
+            self.selection = 1;
+        } else {
+            self.restoreSelectionStyle();
+            self.selection += 1;
+        }
+        self.term.setLineStyle(self.db.entries.len, self.selection - 1, App.SelectionStyle, self.db.entries[self.selection - 1]);
+    }
+
+    fn restoreSelectionStyle(self: *App) void {
+        if (self.selection == 0) {
+            return;
+        }
+        self.term.setLineStyle(self.db.entries.len, self.selection - 1, null, self.db.entries[self.selection - 1]);
     }
 };

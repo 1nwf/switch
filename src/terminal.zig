@@ -83,10 +83,12 @@ pub fn clearLines(self: *Terminal, lines: usize) void {
     ansi_term.cursor.setCursorColumn(self.writer, 0) catch {};
 }
 
-pub fn setLineStyle(self: *Terminal, total_lines: usize, line: usize, fg: ansi_term.style.Color, bg: ansi_term.style.Color, entry: []const u8) void {
+pub fn setLineStyle(self: *Terminal, total_lines: usize, line: usize, style: ?ansi_term.style.Style, entry: []const u8) void {
     ansi_term.cursor.saveCursor(self.writer) catch {};
     ansi_term.cursor.cursorUp(self.writer, total_lines - line) catch {};
-    ansi_term.format.updateStyle(self.writer, .{ .foreground = fg, .background = bg }, null) catch {};
+    if (style) |s| {
+        ansi_term.format.updateStyle(self.writer, s, null) catch {};
+    }
     ansi_term.cursor.setCursorColumn(self.writer, 0) catch {};
     self.writeln("{}. {s}", .{ line + 1, entry });
     ansi_term.cursor.restoreCursor(self.writer) catch {};
