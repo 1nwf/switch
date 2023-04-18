@@ -27,14 +27,14 @@ pub fn init() !Terminal {
 pub fn read(self: *Terminal) ![]u8 {
     var buf: [2]u8 = undefined;
     const n = try self.tty.read(&buf);
+    if (n + self.index >= self.input_buffer.len) {
+        self.index = 0;
+    }
     for (0..n) |idx| {
         self.input_buffer[idx + self.index] = buf[idx];
     }
     const idx = self.index;
 
-    if (std.mem.eql(u8, buf[0..n], "\r")) {
-        return "";
-    }
     self.index += @truncate(u8, n);
     return self.input_buffer[idx..self.index];
 }
@@ -90,4 +90,12 @@ pub fn setLineStyle(self: *Terminal, total_lines: usize, line: usize, fg: ansi_t
     ansi_term.cursor.setCursorColumn(self.writer, 0) catch {};
     self.writeln("{}. {s}", .{ line + 1, entry });
     ansi_term.cursor.restoreCursor(self.writer) catch {};
+}
+
+pub fn cursorUp(self: *Terminal, lines: usize) !void {
+    try ansi_term.cursor.cursorUp(self.writer, lines);
+}
+
+pub fn cursorDown(self: *Terminal, lines: usize) !void {
+    try ansi_term.cursor.cursorDoown(self.writer, lines);
 }
