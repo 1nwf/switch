@@ -42,8 +42,9 @@ pub const App = struct {
                 self.selectUp();
                 continue;
             } else if (std.mem.eql(u8, str, "\r")) {
-                if (self.selection == 0)
-                    continue;
+                if (self.selection == 0) {
+                    self.selection += 1;
+                }
             } else {
                 var val = std.fmt.parseInt(usize, str, 0) catch 0;
                 if (val > self.db.entries.len or val <= 0) {

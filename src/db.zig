@@ -75,7 +75,7 @@ pub fn removeEntry(self: *Self, path: []const u8) ![]u8 {
         }
     }
 
-    self.deleteAll();
+    try self.deleteAll();
     try self.data.writeAll(data);
 
     return dir;
