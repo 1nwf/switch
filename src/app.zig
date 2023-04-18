@@ -17,9 +17,6 @@ pub const App = struct {
     fn writeEntries(self: *App) void {
         const entries = self.db.entries;
         for (entries, 0..) |dir, idx| {
-            if (idx + 1 == self.selection) {
-                self.term.writer.print("* ", .{}) catch {};
-            }
             _ = self.term.writer.print("{}. {s}", .{ idx + 1, dir }) catch {};
             self.term.writeln("\n-------------------------------------------", .{});
         }
@@ -69,35 +66,36 @@ pub const App = struct {
     }
 
     fn selectUp(self: *App) void {
+        self.restoreSelectionStyle();
         if (self.selection <= 1) {
-            self.restoreSelectionStyle();
             self.selection = self.db.entries.len;
         } else {
-            self.restoreSelectionStyle();
             self.selection -= 1;
         }
-        self.restoreSelectionStyle();
-        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.HighlightStyle, self.db.entries[self.selection - 1]);
+
+        self.updateHighlight();
     }
 
     fn selectDown(self: *App) void {
+        self.restoreSelectionStyle();
         if (self.selection + 1 > self.db.entries.len) {
-            self.restoreSelectionStyle();
             self.selection = 1;
         } else {
-            self.restoreSelectionStyle();
             self.selection += 1;
         }
 
-        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.HighlightStyle, self.db.entries[self.selection - 1]);
+        self.updateHighlight();
     }
 
     fn restoreSelectionStyle(self: *App) void {
         if (self.selection == 0) {
             return;
         }
-
         self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), null, self.db.entries[self.selection - 1]);
+    }
+
+    fn updateHighlight(self: *App) void {
+        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.HighlightStyle, self.db.entries[self.selection - 1]);
     }
 
     fn getSelectionLine(self: *App) usize {
