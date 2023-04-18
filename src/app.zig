@@ -16,9 +16,10 @@ pub const App = struct {
 
     fn writeEntries(self: *App) void {
         const entries = self.db.entries;
+        self.term.writeln("──────────────────────────────────────────", .{});
         for (entries, 0..) |dir, idx| {
             _ = self.term.writer.print("{}. {s}", .{ idx + 1, dir }) catch {};
-            self.term.writeln("\n-------------------------------------------", .{});
+            self.term.writeln("\n──────────────────────────────────────────", .{});
         }
         self.term.write("=> ", .{});
     }
