@@ -20,7 +20,7 @@ pub const App = struct {
                 self.term.writer.print("* ", .{}) catch {};
             }
             _ = self.term.writer.print("{}. {s}", .{ idx + 1, dir }) catch {};
-            self.term.writeln("", .{});
+            self.term.writeln("\n-------------------------------------------", .{});
         }
         self.term.write("=> ", .{});
     }
@@ -34,7 +34,6 @@ pub const App = struct {
 
         while (true) {
             const str = try self.term.read();
-            var val: usize = 0;
             if (std.mem.eql(u8, str, "j")) {
                 self.selectDown();
                 continue;
@@ -42,21 +41,23 @@ pub const App = struct {
                 self.selectUp();
                 continue;
             } else if (std.mem.eql(u8, str, "\r")) {
-                val = self.selection;
+                if (self.selection == 0)
+                    continue;
             } else {
-                val = std.fmt.parseInt(usize, str, 0) catch 0;
-            }
-            if (val > self.db.entries.len or val <= 0) {
-                continue;
+                var val = std.fmt.parseInt(usize, str, 0) catch 0;
+                if (val > self.db.entries.len or val <= 0) {
+                    continue;
+                }
+                self.selection = val;
             }
 
-            self.term.setLineStyle(entries.len, val - 1, App.SelectionStyle, entries[val - 1]);
+            self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.SelectionStyle, self.db.entries[self.selection - 1]);
 
-            self.term.write("{}", .{val});
+            self.term.write("{}", .{self.selection});
             std.time.sleep(50_000_000);
 
-            self.term.clearLines(entries.len);
-            return entries[val - 1];
+            self.term.clearLines(entries.len * 2);
+            return entries[self.selection - 1];
         }
     }
 
@@ -74,7 +75,7 @@ pub const App = struct {
             self.selection -= 1;
         }
         self.restoreSelectionStyle();
-        self.term.setLineStyle(self.db.entries.len, self.selection - 1, App.SelectionStyle, self.db.entries[self.selection - 1]);
+        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.SelectionStyle, self.db.entries[self.selection - 1]);
     }
 
     fn selectDown(self: *App) void {
@@ -85,13 +86,19 @@ pub const App = struct {
             self.restoreSelectionStyle();
             self.selection += 1;
         }
-        self.term.setLineStyle(self.db.entries.len, self.selection - 1, App.SelectionStyle, self.db.entries[self.selection - 1]);
+
+        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.SelectionStyle, self.db.entries[self.selection - 1]);
     }
 
     fn restoreSelectionStyle(self: *App) void {
         if (self.selection == 0) {
             return;
         }
-        self.term.setLineStyle(self.db.entries.len, self.selection - 1, null, self.db.entries[self.selection - 1]);
+
+        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), null, self.db.entries[self.selection - 1]);
+    }
+
+    fn getSelectionLine(self: *App) usize {
+        return self.selection * 2 - 1;
     }
 };
