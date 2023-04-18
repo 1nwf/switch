@@ -75,8 +75,7 @@ pub fn removeEntry(self: *Self, path: []const u8) ![]u8 {
         }
     }
 
-    try self.data.setEndPos(0);
-    try self.data.seekTo(0);
+    self.deleteAll();
     try self.data.writeAll(data);
 
     return dir;
@@ -106,4 +105,9 @@ pub fn entryExists(self: *Self, entry: []const u8) bool {
     }
 
     return false;
+}
+
+pub fn deleteAll(self: *Self) !void {
+    try self.data.seekTo(0);
+    try self.data.setEndPos(0);
 }

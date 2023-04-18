@@ -4,8 +4,11 @@ const Terminal = @import("terminal.zig");
 const DB = @import("db.zig");
 const ansi_term = @import("ansi-term");
 
-const Actions = enum { add, rm };
-const Command = union(Actions) { add: []const u8, rm: []const u8 };
+const Command = union(enum) {
+    add: []const u8,
+    rm: []const u8,
+    reset,
+};
 fn parseArgs(args: *std.process.ArgIterator) ?Command {
     _ = args.skip();
     while (args.next()) |arg| {
@@ -23,6 +26,8 @@ fn parseArgs(args: *std.process.ArgIterator) ?Command {
                 std.log.err("provide path to be removed", .{});
                 std.process.exit(1);
             }
+        } else if (std.mem.eql(u8, arg, "reset")) {
+            return .reset;
         }
     }
 
@@ -55,6 +60,9 @@ pub fn main() !void {
                     std.process.exit(1);
                 };
                 try stdout.print("removed {s}", .{real_path});
+            },
+            .reset => {
+                try db.deleteAll();
             },
         }
         return;
