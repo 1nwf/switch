@@ -8,6 +8,7 @@ pub const App = struct {
     db: DB,
     selection: usize = 0,
 
+    const HighlightStyle = .{ .foreground = .Red, .background = .Default };
     const SelectionStyle = .{ .foreground = .{ .RGB = .{ .r = 0xff, .g = 0xff, .b = 0xff } }, .background = .Red };
     pub fn init(mode: Mode, term: Terminal, db: DB) App {
         return App{ .mode = mode, .term = term, .db = db };
@@ -75,7 +76,7 @@ pub const App = struct {
             self.selection -= 1;
         }
         self.restoreSelectionStyle();
-        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.SelectionStyle, self.db.entries[self.selection - 1]);
+        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.HighlightStyle, self.db.entries[self.selection - 1]);
     }
 
     fn selectDown(self: *App) void {
@@ -87,7 +88,7 @@ pub const App = struct {
             self.selection += 1;
         }
 
-        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.SelectionStyle, self.db.entries[self.selection - 1]);
+        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.HighlightStyle, self.db.entries[self.selection - 1]);
     }
 
     fn restoreSelectionStyle(self: *App) void {
