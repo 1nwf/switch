@@ -2,6 +2,7 @@ const std = @import("std");
 const Terminal = @import("terminal.zig");
 const Mode = enum { num, search };
 const DB = @import("db.zig");
+const ziglyph = @import("ziglyph");
 pub const App = struct {
     mode: Mode,
     term: Terminal,
@@ -23,7 +24,7 @@ pub const App = struct {
     }
     pub fn run(
         self: *App,
-    ) ![]const u8 {
+    ) !?[]const u8 {
         defer self.deinit();
 
         const entries = self.db.entries;
@@ -41,6 +42,8 @@ pub const App = struct {
                 if (self.selection == 0) {
                     self.selection += 1;
                 }
+            } else if (str[0] == 27) {
+                return null;
             } else {
                 var val = std.fmt.parseInt(usize, str, 0) catch 0;
                 if (val > self.db.entries.len or val <= 0) {
@@ -54,12 +57,12 @@ pub const App = struct {
             self.term.write("{}", .{self.selection});
             std.time.sleep(50_000_000);
 
-            self.term.clearLines(entries.len);
             return entries[self.selection - 1];
         }
     }
 
     pub fn deinit(self: *App) void {
+        self.term.clearLines(self.db.entries.len);
         self.term.deinit();
         self.db.deinit();
     }

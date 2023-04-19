@@ -3,13 +3,19 @@ const App = @import("app.zig").App;
 const Terminal = @import("terminal.zig");
 const DB = @import("db.zig");
 const ansi_term = @import("ansi-term");
+const ziglyph = @import("ziglyph");
 
-const Command = union(enum) {
-    add: []const u8,
-    rm: []const u8,
-    reset,
-};
-fn parseArgs(args: *std.process.ArgIterator) ?Command {
+const Command = union(enum) { add: []const u8, rm: []const u8, reset, help };
+
+const helpMenu =
+    \\Usage: sw [options]
+    \\ 
+    \\add/a [directory] - adds a directory to the list
+    \\remove/rm [directory] - removes a directory from the list
+    \\help -- shows this help menu
+;
+
+fn parseArgs(args: *std.process.ArgIterator) !?Command {
     _ = args.skip();
     while (args.next()) |arg| {
         if (std.mem.eql(u8, arg, "add") or std.mem.eql(u8, arg, "a")) {
@@ -17,17 +23,19 @@ fn parseArgs(args: *std.process.ArgIterator) ?Command {
                 return Command{ .add = dir };
             } else {
                 std.log.err("provide path to be added", .{});
-                std.process.exit(1);
+                return error.InvalidCmd;
             }
         } else if (std.mem.eql(u8, arg, "remove") or std.mem.eql(u8, arg, "rm")) {
             if (args.next()) |dir| {
                 return Command{ .rm = dir };
             } else {
                 std.log.err("provide path to be removed", .{});
-                std.process.exit(1);
+                return error.InvalidCmd;
             }
         } else if (std.mem.eql(u8, arg, "reset")) {
             return .reset;
+        } else if (std.mem.eql(u8, arg, "help")) {
+            return .help;
         }
     }
 
@@ -44,25 +52,30 @@ pub fn main() !void {
     defer args.deinit();
 
     const stdout = std.io.getStdOut().writer();
-    const command = parseArgs(&args);
+    const command = parseArgs(&args) catch {
+        return;
+    };
     if (command) |cmd| {
         switch (cmd) {
             .add => |dir| {
                 const real_path = db.addEntry(dir) catch {
                     std.log.err("unable to add entry", .{});
-                    std.process.exit(1);
+                    return;
                 };
                 try stdout.print("added {s}", .{real_path});
             },
             .rm => |dir| {
                 const real_path = db.removeEntry(dir) catch {
                     std.log.err("unable to remove entry", .{});
-                    std.process.exit(1);
+                    return;
                 };
                 try stdout.print("removed {s}", .{real_path});
             },
             .reset => {
                 try db.deleteAll();
+            },
+            .help => {
+                try stdout.print("{s}\n", .{helpMenu});
             },
         }
         return;
@@ -72,5 +85,7 @@ pub fn main() !void {
     var app = App.init(.num, term, db);
 
     const selection = try app.run();
-    try stdout.print("{s}\n", .{selection});
+    if (selection) |val| {
+        try stdout.print("{s}\n", .{val});
+    }
 }

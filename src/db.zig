@@ -8,7 +8,7 @@ const Self = @This();
 
 pub fn init(alloc: std.mem.Allocator) !Self {
     var dir = try default_dir(alloc);
-    init_dir(dir);
+    try init_dir(dir);
 
     var filename_buf: [100]u8 = undefined;
 
@@ -32,13 +32,13 @@ pub fn default_dir(alloc: std.mem.Allocator) ![]const u8 {
     return try std.fs.getAppDataDir(alloc, "dir_cli");
 }
 
-fn init_dir(dir: []const u8) void {
+fn init_dir(dir: []const u8) !void {
     std.fs.makeDirAbsolute(dir) catch |e| {
         switch (e) {
             error.PathAlreadyExists => {},
             else => {
                 std.log.err("unable to create data directory", .{});
-                std.process.exit(1);
+                return e;
             },
         }
     };
