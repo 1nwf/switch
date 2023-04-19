@@ -2,7 +2,6 @@ const std = @import("std");
 const Terminal = @import("terminal.zig");
 const Mode = enum { num, search };
 const DB = @import("db.zig");
-const ziglyph = @import("ziglyph");
 pub const App = struct {
     mode: Mode,
     term: Terminal,

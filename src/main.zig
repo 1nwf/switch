@@ -3,8 +3,6 @@ const App = @import("app.zig").App;
 const Terminal = @import("terminal.zig");
 const DB = @import("db.zig");
 const ansi_term = @import("ansi-term");
-const ziglyph = @import("ziglyph");
-
 const Command = union(enum) { add: []const u8, rm: []const u8, reset, help };
 
 const helpMenu =
