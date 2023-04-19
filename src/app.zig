@@ -16,10 +16,8 @@ pub const App = struct {
 
     fn writeEntries(self: *App) void {
         const entries = self.db.entries;
-        self.term.writeln("──────────────────────────────────────────", .{});
         for (entries, 0..) |dir, idx| {
-            _ = self.term.writer.print("{}. {s}", .{ idx + 1, dir }) catch {};
-            self.term.writeln("\n──────────────────────────────────────────", .{});
+            _ = self.term.writer.print("{}. {s}\n", .{ idx + 1, dir }) catch {};
         }
         self.term.write("=> ", .{});
     }
@@ -51,12 +49,12 @@ pub const App = struct {
                 self.selection = val;
             }
 
-            self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.SelectionStyle, self.db.entries[self.selection - 1]);
+            self.term.setLineStyle(self.db.entries.len, self.getSelectionLine(), App.SelectionStyle, self.db.entries[self.selection - 1]);
 
             self.term.write("{}", .{self.selection});
             std.time.sleep(50_000_000);
 
-            self.term.clearLines(entries.len * 2);
+            self.term.clearLines(entries.len);
             return entries[self.selection - 1];
         }
     }
@@ -92,14 +90,14 @@ pub const App = struct {
         if (self.selection == 0) {
             return;
         }
-        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), null, self.db.entries[self.selection - 1]);
+        self.term.setLineStyle(self.db.entries.len, self.getSelectionLine(), null, self.db.entries[self.selection - 1]);
     }
 
     fn updateHighlight(self: *App) void {
-        self.term.setLineStyle(self.db.entries.len * 2 + 1, self.getSelectionLine(), App.HighlightStyle, self.db.entries[self.selection - 1]);
+        self.term.setLineStyle(self.db.entries.len, self.getSelectionLine(), App.HighlightStyle, self.db.entries[self.selection - 1]);
     }
 
     fn getSelectionLine(self: *App) usize {
-        return self.selection * 2 - 1;
+        return self.selection - 1;
     }
 };
