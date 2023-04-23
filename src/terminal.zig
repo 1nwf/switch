@@ -99,5 +99,5 @@ pub fn cursorUp(self: *Terminal, lines: usize) !void {
 }
 
 pub fn cursorDown(self: *Terminal, lines: usize) !void {
-    try ansi_term.cursor.cursorDoown(self.writer, lines);
+    try ansi_term.cursor.cursorDown(self.writer, lines);
 }
