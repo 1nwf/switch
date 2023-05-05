@@ -87,11 +87,11 @@ pub fn read(
     var reader = self.data.reader();
     var list = std.ArrayList([]const u8).init(self.alloc);
     while (true) {
-        var dir = reader.readUntilDelimiterAlloc(self.alloc, '\n', 200) catch break;
-        if (dir.len == 0) {
+        var dir = reader.readUntilDelimiterOrEofAlloc(self.alloc, '\n', 300) catch break;
+        if (dir == null or dir.?.len == 0) {
             break;
         }
-        try list.append(dir);
+        try list.append(dir.?);
     }
 
     return list.items;
