@@ -107,7 +107,51 @@ pub fn entryExists(self: *Self, entry: []const u8) bool {
     return false;
 }
 
+pub fn removeEntries(self: *Self, entries: [][]const u8) !void {
+    var data = try std.ArrayList([]const u8).initCapacity(self.alloc, self.entries.len);
+    for (self.entries) |d| {
+        for (entries) |e| {
+            if (!std.mem.eql(u8, e, d)) {
+                try data.append(d);
+                try data.append("\n");
+            }
+        }
+    }
+
+    const strings = try std.mem.concat(self.alloc, u8, data.items);
+    try self.deleteAll();
+    try self.data.writeAll(strings);
+}
+
 pub fn deleteAll(self: *Self) !void {
     try self.data.seekTo(0);
     try self.data.setEndPos(0);
+}
+
+pub fn exists(self: *Self, path: []const u8) bool {
+    for (self.entries) |e| {
+        if (std.mem.eql(u8, e, path)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+pub fn sync(self: *Self) !void {
+    var toDelete = std.ArrayList([]const u8).init(self.alloc);
+    for (self.entries) |e| {
+        if (!dirExists(e)) {
+            std.debug.print("removing {s}\n", .{e});
+            try toDelete.append(e);
+        }
+    }
+    try self.removeEntries(toDelete.items);
+}
+
+pub fn dirExists(dir: []const u8) bool {
+    var d = std.fs.openDirAbsolute(dir, .{}) catch {
+        return false;
+    };
+    d.close();
+    return true;
 }

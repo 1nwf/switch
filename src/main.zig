@@ -3,7 +3,8 @@ const App = @import("app.zig").App;
 const Terminal = @import("terminal.zig");
 const DB = @import("db.zig");
 const ansi_term = @import("ansi-term");
-const Command = union(enum) { add: []const u8, rm: []const u8, reset, help };
+
+const Command = union(enum) { add: []const u8, rm: []const u8, reset, help, sync };
 
 const helpMenu =
     \\Usage: sw [options]
@@ -34,6 +35,8 @@ fn parseArgs(args: *std.process.ArgIterator) !?Command {
             return .reset;
         } else if (std.mem.eql(u8, arg, "help")) {
             return .help;
+        } else if (std.mem.eql(u8, arg, "sync")) {
+            return .sync;
         }
     }
 
@@ -75,12 +78,15 @@ pub fn main() !void {
             .help => {
                 try stdout.print("{s}\n", .{helpMenu});
             },
+            .sync => {
+                try db.sync();
+            },
         }
         return;
     }
 
     var term = try Terminal.init();
-    var app = App.init(.num, term, db);
+    var app = try App.init(.num, term, db);
 
     const selection = try app.run();
     if (selection) |val| {
