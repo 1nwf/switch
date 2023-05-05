@@ -155,6 +155,8 @@ pub fn sync(self: *Self) !void {
         }
     }
     try self.removeEntries(toDelete.items);
+
+    std.debug.print("database updated\n", .{});
 }
 
 pub fn dirExists(dir: []const u8) bool {
