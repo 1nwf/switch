@@ -108,19 +108,28 @@ pub fn entryExists(self: *Self, entry: []const u8) bool {
 }
 
 pub fn removeEntries(self: *Self, entries: [][]const u8) !void {
+    if (entries.len == 0) {
+        return;
+    }
     var data = try std.ArrayList([]const u8).initCapacity(self.alloc, self.entries.len);
     for (self.entries) |d| {
+        var valid = true;
         for (entries) |e| {
-            if (!std.mem.eql(u8, e, d)) {
-                try data.append(d);
-                try data.append("\n");
+            if (std.mem.eql(u8, e, d)) {
+                valid = false;
+                break;
             }
+        }
+
+        if (valid) {
+            try data.append(d);
+            try data.append("\n");
         }
     }
 
-    const strings = try std.mem.concat(self.alloc, u8, data.items);
+    const dirs = try std.mem.concat(self.alloc, u8, data.items);
     try self.deleteAll();
-    try self.data.writeAll(strings);
+    try self.data.writeAll(dirs);
 }
 
 pub fn deleteAll(self: *Self) !void {
