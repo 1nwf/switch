@@ -1,6 +1,7 @@
 const std = @import("std");
 const system = std.os.system;
 const ansi_term = @import("ansi-term");
+const ziglyph = @import("ziglyph");
 
 const Terminal = @This();
 tty: std.fs.File,
@@ -9,6 +10,15 @@ termios: std.os.termios,
 old_termios: std.os.termios,
 index: u8 = 0,
 input_buffer: [200]u8 = undefined,
+
+pub const Input = union(enum) {
+    up,
+    down,
+    delete,
+    select,
+    quit,
+    str: []const u8,
+};
 
 pub fn init() !Terminal {
     var tty = try std.fs.openFileAbsolute("/dev/tty", .{ .mode = .read_write });
@@ -24,19 +34,35 @@ pub fn init() !Terminal {
     return term;
 }
 
-pub fn read(self: *Terminal) ![]u8 {
-    var buf: [2]u8 = undefined;
-    const n = try self.tty.read(&buf);
-    if (n + self.index >= self.input_buffer.len) {
-        self.index = 0;
+pub fn read(self: *Terminal) !Input {
+    const cp = try ziglyph.readCodePoint(self.tty.reader());
+    const char = cp.?;
+    var idx = self.index;
+    _ = idx;
+    if (ziglyph.isControl(char)) {
+        // TODO: handle j/k up/down commands
+        switch (char) {
+            127 => {
+                return .delete;
+            },
+            27 => {
+                return .quit;
+            },
+            '\r' => return .select,
+            else => unreachable,
+        }
     }
-    for (0..n) |idx| {
-        self.input_buffer[idx + self.index] = buf[idx];
-    }
-    const idx = self.index;
 
-    self.index += @truncate(u8, n);
-    return self.input_buffer[idx..self.index];
+    self.index += try std.unicode.utf8Encode(char, self.input_buffer[self.index..]);
+    return .{ .str = self.input_buffer[0..self.index] };
+}
+
+pub fn empty(self: *Terminal) bool {
+    return self.index == 0;
+}
+
+pub fn getInput(self: *Terminal) []const u8 {
+    return self.input_buffer[0..self.index];
 }
 
 pub fn write(self: *Terminal, comptime bytes: []const u8, args: anytype) void {
@@ -100,4 +126,11 @@ pub fn cursorUp(self: *Terminal, lines: usize) !void {
 
 pub fn cursorDown(self: *Terminal, lines: usize) !void {
     try ansi_term.cursor.cursorDown(self.writer, lines);
+}
+
+pub fn delete(self: *Terminal) void {
+    if (self.index == 0) {
+        return;
+    }
+    self.index -= 1;
 }

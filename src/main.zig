@@ -86,7 +86,7 @@ pub fn main() !void {
     }
 
     var term = try Terminal.init();
-    var app = try App.init(.num, term, db);
+    var app = try App.init(term, db);
 
     const selection = try app.run();
     if (selection) |val| {
