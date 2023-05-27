@@ -30,11 +30,11 @@ pub fn build(b: *std.Build) void {
     // exe.install();
     std.Build.installArtifact(b, exe);
 
-    const ansi_term = b.addModule("ansi-term", .{ .source_file = .{ .path = "lib/ansi-term/src/main.zig" } });
-    exe.addModule("ansi-term", ansi_term);
-
     const ziglyph = b.dependency("ziglyph", .{ .target = target, .optimize = optimize });
     exe.addModule("ziglyph", ziglyph.module("ziglyph"));
+
+    const ansi_term = b.dependency("ansi_term", .{ .target = target, .optimize = optimize });
+    exe.addModule("ansi-term", ansi_term.module("ansi-term"));
 
     // This *creates* a RunStep in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish

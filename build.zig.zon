@@ -6,6 +6,10 @@
 		.ziglyph = .{
 		    .url = "https://github.com/jecolon/ziglyph/archive/a737cf1808f35f7cb5eb54a9b0bc47d839bae506.tar.gz",
 			.hash = "1220c892b709f43fac99c3ea7876fd0333274c8bec5fee62f7a341b523687e85d722"
+		},
+		.ansi_term = .{
+			.url = "https://github.com/ziglibs/ansi-term/archive/1bc351aabfd6592ee4a2fa0f28f0e7f11bdbefff.tar.gz",
+			.hash = "1220fea583e973d14d9a61f8179b7c1056fc90f8d6fc9360c10bc683e32482751dbf"
 		}
 	}
 }
