@@ -27,7 +27,7 @@ pub const App = struct {
     pub fn run(
         self: *App,
     ) !?[]const u8 {
-        defer self.deinit();
+        defer self.deinit() catch {};
         self.writeEntries();
 
         var redraw = true;
@@ -90,9 +90,9 @@ pub const App = struct {
         self.term.write("{s}", .{input});
     }
 
-    pub fn deinit(self: *App) void {
+    pub fn deinit(self: *App) !void {
         self.term.clearLines(self.active.len);
-        self.term.deinit();
+        try self.term.deinit();
         self.db.deinit();
     }
 
