@@ -49,7 +49,9 @@ pub fn read(self: *Terminal) !Input {
                 return .quit;
             },
             '\r' => return .select,
-            else => unreachable,
+            10 => return .down,
+            11 => return .up,
+            else => @panic("invalid sequence"),
         }
     }
 
@@ -116,7 +118,7 @@ pub fn setLineStyle(self: *Terminal, total_lines: usize, line: usize, style: ?an
         ansi_term.format.updateStyle(self.writer, s, null) catch {};
     }
     ansi_term.cursor.setCursorColumn(self.writer, 0) catch {};
-    self.writeln("{}. {s}", .{ line / 2 + 1, entry });
+    self.writeln("{}. {s}", .{ line + 1, entry });
     ansi_term.cursor.restoreCursor(self.writer) catch {};
 }
 

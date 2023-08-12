@@ -19,7 +19,7 @@ pub const App = struct {
 
     fn writeEntries(self: *App) void {
         for (self.active, 0..) |dir, idx| {
-            _ = self.term.writer.print("{}. {s}\n", .{ idx + 1, dir }) catch {};
+            self.term.write("{}. {s}\n", .{ idx + 1, dir });
         }
         self.term.write("=> ", .{});
     }
@@ -61,6 +61,7 @@ pub const App = struct {
                     }
                 },
                 .delete => {
+                    if (self.term.index == 0) continue;
                     self.term.delete();
                     try self.draw(self.term.getInput());
                     if (self.term.empty()) {
@@ -69,7 +70,14 @@ pub const App = struct {
 
                     continue;
                 },
-                else => unreachable,
+                .down => {
+                    self.selectDown();
+                    continue;
+                },
+                .up => {
+                    self.selectUp();
+                    continue;
+                },
             }
 
             if (self.active.len == 0) {
