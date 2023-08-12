@@ -34,7 +34,7 @@ pub fn init() !Terminal {
     return term;
 }
 
-pub fn read(self: *Terminal) !Input {
+pub fn read(self: *Terminal) !?Input {
     const cp = try ziglyph.readCodePoint(self.tty.reader());
     const char = cp.?;
     var idx = self.index;
@@ -51,7 +51,7 @@ pub fn read(self: *Terminal) !Input {
             '\r' => return .select,
             10 => return .down,
             11 => return .up,
-            else => @panic("invalid sequence"),
+            else => return null,
         }
     }
 

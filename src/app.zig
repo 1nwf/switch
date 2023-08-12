@@ -33,7 +33,7 @@ pub const App = struct {
         var redraw = true;
 
         while (true) {
-            const input = try self.term.read();
+            const input = try self.term.read() orelse continue;
 
             if (self.term.index > 0) {
                 redraw = true;
