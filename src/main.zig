@@ -4,14 +4,20 @@ const Terminal = @import("terminal.zig");
 const DB = @import("db.zig");
 const ansi_term = @import("ansi-term");
 
-const Command = union(enum) { add: []const u8, rm: []const u8, reset, help, sync };
+const Command = union(enum) {
+    add: []const u8,
+    rm: []const u8,
+    reset,
+    help,
+    sync,
+};
 
 const helpMenu =
     \\Usage: sw [options]
     \\ 
-    \\add/a [directory] - adds a directory to the list
-    \\remove/rm [directory] - removes a directory from the list
-    \\help -- shows this help menu
+    \\add/a [directory]     -- adds a directory to the list
+    \\remove/rm [directory] -- removes a directory from the list
+    \\help                  -- shows this help menu
 ;
 
 fn parseArgs(args: *std.process.ArgIterator) !?Command {
