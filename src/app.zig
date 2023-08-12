@@ -1,4 +1,5 @@
 const std = @import("std");
+const Style = @import("ansi-term").style.Style;
 const Terminal = @import("terminal.zig");
 const DB = @import("db.zig");
 const util = @import("util.zig");
@@ -48,7 +49,7 @@ pub const App = struct {
                     if (self.term.empty()) {
                         redraw = false;
                     }
-
+                    self.selection = 0;
                     continue;
                 },
 
@@ -105,36 +106,30 @@ pub const App = struct {
     }
 
     fn selectUp(self: *App) void {
-        self.restoreSelectionStyle();
+        self.updateHighlight(null);
         if (self.selection <= 1) {
-            self.selection = self.db.entries.len;
+            self.selection = self.active.len;
         } else {
             self.selection -= 1;
         }
 
-        self.updateHighlight();
+        self.updateHighlight(HighlightStyle);
     }
 
     fn selectDown(self: *App) void {
-        self.restoreSelectionStyle();
-        if (self.selection + 1 > self.db.entries.len) {
+        self.updateHighlight(null);
+        if (self.selection + 1 > self.active.len) {
             self.selection = 1;
         } else {
             self.selection += 1;
         }
 
-        self.updateHighlight();
+        self.updateHighlight(HighlightStyle);
     }
 
-    fn restoreSelectionStyle(self: *App) void {
-        if (self.selection == 0) {
-            return;
-        }
-        self.term.setLineStyle(self.db.entries.len, self.getSelectionLine(), null, self.db.entries[self.selection - 1]);
-    }
-
-    fn updateHighlight(self: *App) void {
-        self.term.setLineStyle(self.db.entries.len, self.getSelectionLine(), App.HighlightStyle, self.db.entries[self.selection - 1]);
+    fn updateHighlight(self: *App, style: ?Style) void {
+        if (self.selection == 0 or self.active.len == 0) return;
+        self.term.setLineStyle(self.active.len, self.getSelectionLine(), style, self.active[self.selection - 1]);
     }
 
     fn getSelectionLine(self: *App) usize {
