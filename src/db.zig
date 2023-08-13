@@ -25,6 +25,11 @@ pub fn init(alloc: std.mem.Allocator) !Self {
 }
 
 pub fn deinit(self: *Self) void {
+    self.alloc.free(self.path);
+    for (self.entries) |dir| {
+        self.alloc.free(dir);
+    }
+    self.alloc.free(self.entries);
     self.data.close();
 }
 
@@ -81,20 +86,20 @@ pub fn removeEntry(self: *Self, path: []const u8) ![]u8 {
     return dir;
 }
 
-pub fn read(
-    self: *Self,
-) ![][]const u8 {
+pub fn read(self: *Self) ![][]const u8 {
     var reader = self.data.reader();
     var list = std.ArrayList([]const u8).init(self.alloc);
     while (true) {
         var dir = reader.readUntilDelimiterOrEofAlloc(self.alloc, '\n', 300) catch break;
-        if (dir == null or dir.?.len == 0) {
-            break;
+        if (dir) |val| {
+            if (val.len == 0) break;
+            try list.append(val);
+            continue;
         }
-        try list.append(dir.?);
+        break;
     }
 
-    return list.items;
+    return try list.toOwnedSlice();
 }
 
 pub fn entryExists(self: *Self, entry: []const u8) bool {
