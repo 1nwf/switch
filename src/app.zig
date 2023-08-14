@@ -108,8 +108,8 @@ pub const App = struct {
                 if (std.mem.eql(u8, curr_value, val)) {
                     self.term.cursorDown(1) catch {};
                 } else {
+                    if (curr_value.len > val.len) self.term.clearLine();
                     self.filtered_items.items[len] = val;
-                    self.term.clearLine();
                     self.term.write("{}. {s}\n", .{ len + 1, val });
                 }
             } else {
@@ -131,6 +131,9 @@ pub const App = struct {
     }
 
     pub fn draw(self: *App, input: []const u8) !void {
+        self.term.hideCursor();
+        defer self.term.showCursor();
+
         self.filter.filter(input);
         if (self.height > 0) {
             self.term.cursorUp(self.height) catch {};

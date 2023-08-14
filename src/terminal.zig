@@ -95,6 +95,13 @@ pub fn setCursor(self: *Terminal) void {
     ansi_term.cursor.setCursorMode(self.writer, ansi_term.cursor.CursorMode.I_beam) catch {};
 }
 
+pub fn hideCursor(self: *Terminal) void {
+    ansi_term.cursor.hideCursor(self.writer) catch {};
+}
+pub fn showCursor(self: *Terminal) void {
+    ansi_term.cursor.showCursor(self.writer) catch {};
+}
+
 pub fn deinit(self: *Terminal) !void {
     try std.os.tcsetattr(self.tty.handle, .NOW, self.old_termios);
     self.tty.close();
