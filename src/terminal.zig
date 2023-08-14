@@ -40,7 +40,6 @@ pub fn read(self: *Terminal) !?Input {
     var idx = self.index;
     _ = idx;
     if (ziglyph.isControl(char)) {
-        // TODO: handle j/k up/down commands
         switch (char) {
             127 => {
                 return .delete;
