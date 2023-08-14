@@ -93,9 +93,14 @@ pub fn main() !void {
 
     var term = try Terminal.init();
     var app = try App.init(term, db);
+    defer app.deinit() catch {};
 
     const selection = try app.run();
     if (selection) |val| {
         try stdout.print("{s}\n", .{val});
     }
+}
+
+test {
+    std.testing.refAllDecls(@This());
 }

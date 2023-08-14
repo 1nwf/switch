@@ -136,3 +136,18 @@ pub fn delete(self: *Terminal) void {
     }
     self.index -= 1;
 }
+
+pub fn setCursorColumn(self: *Terminal, num: usize) void {
+    ansi_term.cursor.setCursorColumn(self.writer, num) catch {};
+}
+
+pub fn clearDown(self: *Terminal, lines: usize) void {
+    var i: usize = 0;
+    while (i < lines) : (i += 1) {
+        self.cursorDown(1) catch {};
+        self.clearLine();
+    }
+
+    if (lines != 0) self.cursorUp(lines) catch {};
+    self.setCursorColumn(0);
+}
