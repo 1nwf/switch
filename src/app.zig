@@ -83,7 +83,7 @@ pub const App = struct {
             }
 
             self.term.setLineStyle(self.filtered_items.items.len, self.getSelectionLine(), App.SelectionStyle, self.filtered_items.items[self.selection - 1]);
-            std.time.sleep(50_000_000);
+            std.time.sleep(40_000_000);
             return self.filtered_items.items[self.selection - 1];
         }
     }
