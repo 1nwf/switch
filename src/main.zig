@@ -78,15 +78,9 @@ pub fn main() !void {
                 };
                 try stdout.print("removed {s}", .{real_path});
             },
-            .reset => {
-                try db.deleteAll();
-            },
-            .help => {
-                try stdout.print("{s}\n", .{helpMenu});
-            },
-            .sync => {
-                try db.sync();
-            },
+            .reset => try db.deleteAll(),
+            .help => try stdout.print("{s}\n", .{helpMenu}),
+            .sync => try db.sync(),
         }
         return;
     }
