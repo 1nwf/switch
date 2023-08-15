@@ -6,7 +6,7 @@ function sw
         if test -z $output 
             return
         end
-        echo $output
+        # echo $output
         cd $output
   end
 end
