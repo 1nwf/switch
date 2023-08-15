@@ -110,6 +110,18 @@ pub const App = struct {
     }
 
     pub fn draw(self: *App, input: []const u8) !void {
+        const trimmed_input = std.mem.trim(u8, input, " ");
+        if (self.filter.value != null and std.mem.eql(u8, self.filter.value.?, trimmed_input)) {
+            self.term.clearLine();
+            self.term.setCursorColumn(0);
+            if (input.len != 0) {
+                self.term.write("=> {s}", .{input});
+            } else {
+                self.term.write("=> ", .{});
+            }
+            return;
+        }
+
         self.term.hideCursor();
         defer self.term.showCursor();
         if (self.height > 0) {
@@ -117,17 +129,19 @@ pub const App = struct {
         }
         self.term.setCursorColumn(0);
 
-        if (input.len == 0) {
+        if (trimmed_input.len == 0) {
+            self.filter.value = trimmed_input;
             self.height = 0;
             self.filtered_items.clearRetainingCapacity();
             self.writeAllEntries();
-            return;
+        } else {
+            self.filter.filter(trimmed_input);
+            self.writeEntries();
         }
 
-        self.filter.filter(input);
-
-        self.writeEntries();
-        self.term.write("{s}", .{input});
+        if (input.len != 0) {
+            self.term.write("{s}", .{input});
+        }
     }
 
     pub fn deinit(self: *App) !void {
