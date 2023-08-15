@@ -28,6 +28,7 @@ pub const App = struct {
     pub fn writeAllEntries(self: *App) void {
         for (self.db.entries) |val| {
             self.height += 1;
+            self.term.clearLine();
             self.term.write("{}. {s}\n", .{ self.height, val });
             self.filtered_items.append(val) catch {};
         }
@@ -55,16 +56,21 @@ pub const App = struct {
                         redraw = false;
                     }
                     self.selection = 0;
-                    continue;
                 },
 
                 .quit => {
                     return null;
                 },
                 .select => {
+                    if (self.height == 0) {
+                        return null;
+                    }
                     if (self.selection == 0) {
                         self.selection += 1;
                     }
+                    self.term.setLineStyle(self.filtered_items.items.len, self.getSelectionLine(), App.SelectionStyle, self.filtered_items.items[self.selection - 1]);
+                    std.time.sleep(40_000_000);
+                    return self.filtered_items.items[self.selection - 1];
                 },
                 .delete => {
                     if (self.term.index == 0) continue;
@@ -73,26 +79,14 @@ pub const App = struct {
                     if (self.term.empty()) {
                         redraw = false;
                     }
-
-                    continue;
                 },
                 .down => {
                     self.selectDown();
-                    continue;
                 },
                 .up => {
                     self.selectUp();
-                    continue;
                 },
             }
-
-            if (self.height == 0) {
-                return null;
-            }
-
-            self.term.setLineStyle(self.filtered_items.items.len, self.getSelectionLine(), App.SelectionStyle, self.filtered_items.items[self.selection - 1]);
-            std.time.sleep(40_000_000);
-            return self.filtered_items.items[self.selection - 1];
         }
     }
 
