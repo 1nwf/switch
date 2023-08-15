@@ -12,25 +12,29 @@ pub fn init(items: [][]const u8) !Self {
     };
 }
 
-pub fn next(self: *Self) ?[]const u8 {
+pub fn next(self: *Self) ?Word {
     if (self.idx >= self.items.len) return null;
-    var next_val: ?[]const u8 = null;
-    if (self.value) |val| {
-        for (self.items[self.idx..], self.idx..) |dir, idx| {
-            if (!util.contains(dir, val)) continue;
-            next_val = dir;
-            self.idx = idx + 1;
-            break;
-        }
-    } else {
-        next_val = self.items[self.idx];
-        self.idx += 1;
+    const filter_word = self.value orelse return null;
+    for (self.items[self.idx..], self.idx..) |dir, idx| {
+        const match = util.contains(dir, filter_word) orelse continue;
+        self.idx = idx + 1;
+        return Word.init(dir, match);
     }
-
-    return next_val;
+    return null;
 }
 
 pub fn filter(self: *Self, value: []const u8) void {
     self.value = value;
     self.idx = 0;
 }
+
+pub const Word = struct {
+    match: util.Match,
+    value: []const u8,
+    fn init(value: []const u8, match: util.Match) Word {
+        return .{
+            .value = value,
+            .match = match,
+        };
+    }
+};

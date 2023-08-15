@@ -1,8 +1,13 @@
 const std = @import("std");
 const toLower = std.ascii.toLower;
 
-pub fn contains(s1: []const u8, s2: []const u8) bool {
-    if (s1.len == 0 or s2.len == 0) return true;
+pub const Match = struct {
+    start: usize,
+    end: usize,
+};
+
+pub fn contains(s1: []const u8, s2: []const u8) ?Match {
+    if (s1.len == 0 or s2.len == 0) return null;
     const min = blk: {
         if (s1.len > s2.len) {
             break :blk s2;
@@ -18,13 +23,18 @@ pub fn contains(s1: []const u8, s2: []const u8) bool {
     };
 
     var window = std.mem.window(u8, max, min.len, 1);
+    var index = window.index.?;
     while (window.next()) |val| {
         if (eql(val, min)) {
-            return true;
+            return .{
+                .start = index,
+                .end = index + min.len,
+            };
         }
+        index = window.index orelse 0;
     }
 
-    return false;
+    return null;
 }
 
 fn eql(first: []const u8, second: []const u8) bool {

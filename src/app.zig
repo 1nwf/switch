@@ -25,10 +25,18 @@ pub const App = struct {
         };
     }
 
-    pub fn run(self: *App) !?[]const u8 {
-        self.writeEntries();
+    pub fn writeAllEntries(self: *App) void {
+        for (self.db.entries) |val| {
+            self.height += 1;
+            self.term.write("{}. {s}\n", .{ self.height, val });
+            self.filtered_items.append(val) catch {};
+        }
+        self.term.write("=> ", .{});
+    }
 
+    pub fn run(self: *App) !?[]const u8 {
         var redraw = true;
+        self.writeAllEntries();
 
         while (true) {
             const input = try self.term.read() orelse continue;
@@ -90,32 +98,16 @@ pub const App = struct {
 
     fn writeEntries(self: *App) void {
         var len: usize = 0;
-        if (self.filtered_items.items.len == 0) {
-            while (self.filter.next()) |val| {
-                len += 1;
-                self.term.write("{}. {s}\n", .{ len, val });
-                self.filtered_items.append(val) catch {};
-            }
-            self.height = len;
-            self.term.clearLine();
-            self.term.write("=> ", .{});
-            return;
-        }
-
         while (self.filter.next()) |val| {
             if (self.filtered_items.items.len > len) {
                 const curr_value = self.filtered_items.items[len];
-                if (std.mem.eql(u8, curr_value, val)) {
-                    self.term.cursorDown(1) catch {};
-                } else {
-                    if (curr_value.len > val.len) self.term.clearLine();
-                    self.filtered_items.items[len] = val;
-                    self.term.write("{}. {s}\n", .{ len + 1, val });
-                }
+                if (curr_value.len > val.value.len) self.term.clearLine();
+                self.filtered_items.items[len] = val.value;
             } else {
-                self.filtered_items.append(val) catch {};
-                self.term.write("{}. {s}\n", .{ len + 1, val });
+                self.filtered_items.append(val.value) catch {};
             }
+            self.term.write("{}. ", .{len + 1});
+            self.term.writeHighlight(App.HighlightStyle, val.value, val.match.start, val.match.end);
             len += 1;
         }
 
@@ -133,12 +125,20 @@ pub const App = struct {
     pub fn draw(self: *App, input: []const u8) !void {
         self.term.hideCursor();
         defer self.term.showCursor();
-
-        self.filter.filter(input);
         if (self.height > 0) {
             self.term.cursorUp(self.height) catch {};
         }
         self.term.setCursorColumn(0);
+
+        if (input.len == 0) {
+            self.height = 0;
+            self.filtered_items.clearRetainingCapacity();
+            self.writeAllEntries();
+            return;
+        }
+
+        self.filter.filter(input);
+
         self.writeEntries();
         self.term.write("{s}", .{input});
     }
