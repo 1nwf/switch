@@ -8,7 +8,7 @@ const Filter = @import("Filter.zig");
 pub const App = struct {
     term: Terminal,
     db: DB,
-    selection: usize = 0,
+    selection: usize = 1,
     filtered_items: std.ArrayList([]const u8),
     filter: Filter,
     height: usize = 0,
@@ -55,14 +55,11 @@ pub const App = struct {
                     if (self.term.empty()) {
                         redraw = false;
                     }
-                    self.selection = 0;
+                    self.selection = 1;
                 },
                 .select => {
                     if (self.height == 0) {
                         return null;
-                    }
-                    if (self.selection == 0) {
-                        self.selection += 1;
                     }
                     self.term.setLineStyle(self.filtered_items.items.len, self.getSelectionLine(), App.SelectionStyle, self.filtered_items.items[self.selection - 1]);
                     std.time.sleep(40_000_000);
@@ -174,7 +171,7 @@ pub const App = struct {
     }
 
     fn updateHighlight(self: *App, style: ?Style) void {
-        if (self.selection == 0 or self.filtered_items.items.len == 0) return;
+        if (self.filtered_items.items.len == 0) return;
         self.term.setLineStyle(self.filtered_items.items.len, self.getSelectionLine(), style, self.filtered_items.items[self.selection - 1]);
     }
 
