@@ -57,10 +57,6 @@ pub const App = struct {
                     }
                     self.selection = 0;
                 },
-
-                .quit => {
-                    return null;
-                },
                 .select => {
                     if (self.height == 0) {
                         return null;
@@ -80,12 +76,9 @@ pub const App = struct {
                         redraw = false;
                     }
                 },
-                .down => {
-                    self.selectDown();
-                },
-                .up => {
-                    self.selectUp();
-                },
+                .down => self.selectDown(),
+                .up => self.selectUp(),
+                .quit => return null,
             }
         }
     }
