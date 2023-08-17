@@ -17,6 +17,7 @@ const helpMenu =
     \\ 
     \\add/a [directory]     -- adds a directory to the list
     \\remove/rm [directory] -- removes a directory from the list
+    \\reset                 -- delete all entries from the database
     \\help                  -- shows this help menu
 ;
 
