@@ -1,7 +1,7 @@
 sw() {
   if [ $# -eq 0 ]
     then
-      dir="$(/Users/nwf/Desktop/projects/zig/dir-cli/zig-out/bin/dir-cli)"
+      dir="$(/Users/nwf/Desktop/projects/zig/dir-cli/zig-out/bin/switch)"
     if [ -z "$dir" ]
       then
         return
@@ -10,6 +10,6 @@ sw() {
         cd "${dir}"
     fi
     else 
-    /Users/nwf/Desktop/projects/zig/dir-cli/zig-out/bin/dir-cli $*  
+    /Users/nwf/Desktop/projects/zig/dir-cli/zig-out/bin/switch $*  
   fi
 }

@@ -1,5 +1,5 @@
 .{
-    .name = "dir-cli",
+    .name = "switch",
     .version = "0.0.1",
     //
     .dependencies = .{

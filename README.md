@@ -1,4 +1,4 @@
-# dir-cli
+# Switch
 a cli tool to quickly jump and switch directories.
 
 Note: in the demo below, I have the command mapped to a keyboard shortcut
