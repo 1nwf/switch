@@ -50,7 +50,7 @@ pub fn read(self: *Terminal) !?Input {
                 return .quit;
             },
             '\r' => return .select,
-            10 => return .down,
+            10, 9 => return .down,
             11 => return .up,
             else => return null,
         }
