@@ -87,7 +87,7 @@ pub fn main() !void {
     }
 
     var term = try Terminal.init();
-    var app = try App.init(term, db);
+    var app = try App.init(term, db, alloc);
     defer app.deinit() catch {};
 
     const selection = try app.run();

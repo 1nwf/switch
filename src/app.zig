@@ -16,11 +16,11 @@ pub const App = struct {
     const HighlightStyle = .{ .foreground = .Red, .background = .Default };
     const SelectionStyle = .{ .foreground = .{ .RGB = .{ .r = 0xff, .g = 0xff, .b = 0xff } }, .background = .Red };
 
-    pub fn init(term: Terminal, db: DB) !App {
+    pub fn init(term: Terminal, db: DB, allocator: std.mem.Allocator) !App {
         return App{
             .term = term,
             .db = db,
-            .filtered_items = try std.ArrayList([]const u8).initCapacity(db.alloc, db.entries.len),
+            .filtered_items = try std.ArrayList([]const u8).initCapacity(allocator, db.entries.len),
             .filter = try Filter.init(db.entries),
         };
     }
@@ -184,7 +184,7 @@ test "no memory leaks" {
     var allocator = std.testing.allocator;
     var db = try DB.init(allocator);
     var term = try Terminal.init();
-    var app = try App.init(term, db);
+    var app = try App.init(term, db, allocator);
     defer app.deinit() catch @panic("deint error");
     try app.draw("t");
 }
